@@ -1,114 +1,234 @@
 import tkinter as tk
 from tkinter import messagebox
 from datetime import datetime
-import os
+
 
 class Tarea:
-    def __init__(self,titulo,descripcion,estado,fecha):
+
+    def __init__(self, titulo, descripcion, estado, fecha):
+
         self.__titulo = titulo
         self.__descripcion = descripcion
         self.__estado = estado
-        self.__estado= "pendiente"
-        self.__fecha= fecha
-        self.__fecha = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
+        self.__fecha = fecha
+
+        self.tipo = "normal"
+
     def mostrar(self):
-        return f"{self.__titulo}-{self.__estado}"
-    
-    def __str__(self): #metodo dunder para mostrar una funcion
-        return self.mostrar
-    
+
+        return f"{self.titulo()} - {self.estado()}"
+
+    def __str__(self):
+
+        return self.mostrar()
+
+    # Métodos para poder mostrar lo encapsulado
+
+    def titulo(self):
+
+        return self.__titulo
+
+    def descripcion(self):
+
+        return self.__descripcion
+
+    def estado(self):
+
+        return self.__estado
+
+    def fecha(self):
+
+        return self.__fecha
+
+    def completar(self):
+
+        self.__estado = "completada"
+
 
 class TareaUrgente(Tarea):
-    def __init__(self, titulo, descripcion, estado, fecha,tipo):
-        super().__init__(titulo, descripcion, estado, fecha)
-        self.tipo = "Urgente"
-    
-    def mostrar(self):
-        return f"Urgente⚠️ {self.__titulo}-{self.__estado}"
-    
 
-    
-    
+    def __init__(self, titulo, descripcion, estado, fecha):
+
+        super().__init__(titulo, descripcion, estado, fecha)
+
+        self.tipo = "urgente"
+
+    def mostrar(self):
+
+        return f"Urgente ⚠️ {self.titulo()} - {self.estado()}"
+
 
 class GestorTareas:
+
     def __init__(self):
-        self.lista_tareas= []
+
+        self.lista_tareas = []
+
         self.cargar_tareas()
 
-    def agregar_tarea(self,tarea):
+    def agregar_tarea(self, tarea):
 
         self.lista_tareas.append(tarea)
-        
-        archivo = open("tareas.txt","a") #a es append
-        texto = ( tarea.tipo + "|" + tarea.titulo + "|" +tarea.descripcion + "|" + tarea.estado + "|" + tarea.fecha + "\n")
+
+        archivo = open("tareas.txt", "a")
+
+        texto = (tarea.tipo + "/" + tarea.titulo() + "/" + tarea.descripcion() + "/" + tarea.estado() + "/" + tarea.fecha() + "\n")
         archivo.write(texto)
+
         archivo.close()
 
     def guardar_tareas(self):
 
-        # Reescribe el archivo completo
         archivo = open("tareas.txt", "w")
 
         for tarea in self.lista_tareas:
 
-            archivo.write(tarea.tipo + "," + tarea.titulo + "," +tarea.descripcion + "," +tarea.estado + "," + tarea.fecha + "\n") #escribe la informacion en un archivo
+            texto = ( tarea.tipo + "/" + tarea.titulo() + "/" +tarea.descripcion() + "/" +tarea.estado() + "/" + tarea.fecha() + "\n")
+
+            archivo.write(texto)
 
         archivo.close()
-     
-    def cargar_tareas(self): #lo mas dificil del codigo :,I
-            try:
 
-                archivo = open("tareas.txt", "r")
+    def cargar_tareas(self):
 
-                lineas = archivo.readlines() #Lee todas las líneas del archivo y las guarda en una lista (lo tuve que consultar)
+        try:
 
-                for linea in lineas: #Recorre cada línea del archivo una por una
+            archivo = open("tareas.txt", "r")
 
-                    linea = linea.replace("\n", "") #reemplaza los saltos de linea por un espacio en blanco
+            lineas = archivo.readlines()
 
-                    datos = []
+            for linea in lineas:
 
-                    palabra = ""
+                linea = linea.replace("\n", "")
 
-                    for letra in linea: #Recorre cada letra de la línea.
+                datos = []
 
-                        if letra != ",": #  si la letra no es una coma de agrega a palabra
-                            palabra = palabra + letra
+                palabra = ""
 
-                        else: #  al encontrar una coma se guarda la palabra completa en la lista datos
-                            datos.append(palabra)
-                            palabra = ""
+                for letra in linea:
 
-                    datos.append(palabra) #Guarda la palabra que queda después de la última coma.
+                    if letra != "/":
 
-
-                    #Cada posición de la lista se guarda en una variable (lo tuve que consultar un poco)
-                    tipo = datos[0] # lo que esta adento de datos es la posicion de cada elemento de la lista
-                    titulo = datos[1]
-                    descripcion = datos[2]
-                    estado = datos[3]
-                    fecha = datos[4]
-
-                    if tipo == "urgente":
-
-                        tarea = TareaUrgente(titulo,descripcion, estado,fecha) #se crea un objeto en base a Tarea urgente
+                        palabra = palabra + letra
 
                     else:
 
-                        tarea = Tarea( titulo,descripcion,estado,fecha) #se crea un objeto en base a la clase Tarea
+                        datos.append(palabra)
 
-                    self.lista_tareas.append(tarea)
+                        palabra = ""
 
-                archivo.close()
-            except:
-                pass 
+                datos.append(palabra)
+
+                if len(datos) < 5:
+
+                    continue
+
+                tipo = datos[0]
+                titulo = datos[1]
+                descripcion = datos[2]
+                estado = datos[3]
+                fecha = datos[4]
+
+                if tipo == "urgente":
+
+                    tarea = TareaUrgente(titulo,descripcion,estado,fecha)
+
+                else:
+                    tarea = Tarea(titulo, descripcion, estado, fecha)
+
+                  
+
+                self.lista_tareas.append(tarea)
+
+            archivo.close()
+
+        except FileNotFoundError:
+
+            pass
+
+    def eliminar_tarea(self, ubicacion):
+
+        del self.lista_tareas[ubicacion]
+
+        self.guardar_tareas()
+
+
+gestor = GestorTareas()
+
+
+# FUNCIONES
+
+def actualizar_lista():
+
+    lista.delete(0, tk.END)
+
+    posicion = 0
+
+    for tarea in gestor.lista_tareas:
+
+        lista.insert(posicion, tarea.mostrar())
+
+        posicion = posicion + 1
+
+
+def agregar_tarea():
+
+    titulo = entry_tarea.get()
+
+    descripcion = descripcion_tarea.get()
+
+    fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    if titulo == "" or descripcion == "":
+
+        messagebox.showerror("Error","Completa todos los campos")
+
+        return
+
+    elif check_urgente.get() == 1:
+
+        tarea = TareaUrgente(titulo,descripcion,"pendiente",fecha_actual)
+
+    else:
+
+        tarea = Tarea(titulo,descripcion, "pendiente", fecha_actual)
+
+    gestor.agregar_tarea(tarea)
+
+    actualizar_lista()
+
+    entry_tarea.delete(0, tk.END)
+
+    descripcion_tarea.delete(0, tk.END)
+
+    messagebox.showinfo("Gestor","Tarea agregada")
+
+
+def eliminar_tarea():
+
+    if len(gestor.lista_tareas) > 0:
+
+        gestor.eliminar_tarea(0)
+
+        actualizar_lista()
+
+        messagebox.showinfo("Eliminada","Se eliminó la tarea")
+
+
+def completar_tarea():
     
-    def eliminar_tarea(self, ubicacion):  #ubicacion es la posición de la tarea que se quiere borrar.
+    if len(gestor.lista_tareas) > 0:
 
-        del self.lista_tareas[ubicacion] #del  es para eliminar elementos de una lista y asi evito hacer una lista nueva  sin el elemento borrado y un ciclo for -_-
+        gestor.lista_tareas[0].completar()
 
-        self.guardar_tareas() 
+        gestor.guardar_tareas()
+
+        actualizar_lista()
+
+        messagebox.showinfo( "Completada", "La primera tarea fue completada")
+
+
+# VENTANA
 
 ventana = tk.Tk()
 
@@ -116,11 +236,46 @@ ventana.title("Gestor de tareas")
 
 ventana.geometry("500x400")
 
-                
 
-      
-        
-        
-        
+tk.Label( ventana,text="Tarea", font=("Arial", 12)).pack(pady=2)
 
-        
+entry_tarea = tk.Entry( ventana, width=40)
+
+entry_tarea.pack(pady=2)
+
+ 
+tk.Label( ventana, text="Descripcion",font=("Arial", 12)).pack(pady=2)
+
+descripcion_tarea = tk.Entry(ventana,width=40)
+
+descripcion_tarea.pack(pady=2)
+
+
+check_urgente = tk.IntVar()
+
+tk.Checkbutton(ventana,text="Urgente",variable=check_urgente).pack(pady=5)
+
+
+boton_agregar = tk.Button(ventana,text="Agregar tarea", command=agregar_tarea)
+
+boton_agregar.pack(pady=5)
+
+
+boton_completar = tk.Button( ventana,text="Completar", command=completar_tarea)
+
+boton_completar.pack(pady=5)
+
+
+boton_eliminar = tk.Button( ventana, text="Eliminar",command=eliminar_tarea)
+
+boton_eliminar.pack(pady=5)
+
+
+lista = tk.Listbox(ventana, width=50)
+
+lista.pack(pady=10)
+
+
+actualizar_lista()
+
+ventana.mainloop()
