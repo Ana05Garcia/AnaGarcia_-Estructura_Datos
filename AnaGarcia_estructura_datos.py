@@ -18,7 +18,7 @@ class Tarea:
 
         return f"{self.titulo()} - {self.estado()}"
 
-    def __str__(self):
+    def __str__(self): # Método especial que convierte el objeto en texto
 
         return self.mostrar()
 
@@ -61,16 +61,15 @@ class TareaUrgente(Tarea):
 class GestorTareas:
 
     def __init__(self):
+              
+        self.lista_tareas = [] # lista donde se guardan las tareas
 
-        self.lista_tareas = []
-
-        self.cargar_tareas()
+        self.cargar_tareas() # carga  las tareas guardadas en el archivo
 
     def agregar_tarea(self, tarea):
 
-        self.lista_tareas.append(tarea)
 
-        archivo = open("tareas.txt", "a")
+        archivo = open("tareas.txt", "a") # abre el archivo en modo agregar
 
         texto = (tarea.tipo + "/" + tarea.titulo() + "/" + tarea.descripcion() + "/" + tarea.estado() + "/" + tarea.fecha() + "\n")
         archivo.write(texto)
@@ -79,10 +78,11 @@ class GestorTareas:
 
     def guardar_tareas(self):
 
-        archivo = open("tareas.txt", "w")
+        archivo = open("tareas.txt", "w") 
 
-        for tarea in self.lista_tareas:
+        for tarea in self.lista_tareas: # Recorre todas las tareas
 
+            # convierte cada tarea en texto
             texto = ( tarea.tipo + "/" + tarea.titulo() + "/" +tarea.descripcion() + "/" +tarea.estado() + "/" + tarea.fecha() + "\n")
 
             archivo.write(texto)
@@ -95,34 +95,32 @@ class GestorTareas:
 
             archivo = open("tareas.txt", "r")
 
-            lineas = archivo.readlines()
+            lineas = archivo.readlines() # readlines---> una funcion que Lee todas las líneas del archivo
 
-            for linea in lineas:
+            for linea in lineas: # recorre cada línea
 
-                linea = linea.replace("\n", "")
+                linea = linea.replace("\n", "") # elimina el salto de línea
 
-                datos = []
+                datos = [] #lista donde se guardan los datos
 
-                palabra = ""
+                palabra = "" #variable para formar palabras
 
-                for letra in linea:
+                for letra in linea: #Recorre letra por letra
 
-                    if letra != "/":
+                    if letra != "/": 
 
-                        palabra = palabra + letra
-
+                        palabra = palabra + letra # Va formando la palabra
+ 
                     else:
 
-                        datos.append(palabra)
+                        datos.append(palabra)# Guarda la última palabra formada
 
                         palabra = ""
 
                 datos.append(palabra)
 
-                if len(datos) < 5:
-
-                    continue
-
+                
+                # se guarda cada dato en variables segun su posicion
                 tipo = datos[0]
                 titulo = datos[1]
                 descripcion = datos[2]
@@ -142,33 +140,32 @@ class GestorTareas:
 
             archivo.close()
 
-        except FileNotFoundError:
+        except:
 
             pass
 
     def eliminar_tarea(self, ubicacion):
 
-        del self.lista_tareas[ubicacion]
+        del self.lista_tareas[ubicacion] # Elimina la tarea de la posición indicada
 
         self.guardar_tareas()
 
 
-gestor = GestorTareas()
+gestor = GestorTareas() #se crea el objeto
 
 
 # FUNCIONES
 
-def actualizar_lista():
+def actualizar_lista(): # Función para actualizar el Listbox
 
-    lista.delete(0, tk.END)
-
+    lista.delete(0, tk.END) # Borra todos los elementos de la lista 
     posicion = 0
 
-    for tarea in gestor.lista_tareas:
+    for tarea in gestor.lista_tareas: # Recorre todas las tareas
 
-        lista.insert(posicion, tarea.mostrar())
+        lista.insert(posicion, tarea.mostrar()) # Inserta la tarea en el listbox
 
-        posicion = posicion + 1
+        posicion = posicion + 1 # Aumenta la posición
 
 
 def agregar_tarea():
@@ -206,45 +203,52 @@ def agregar_tarea():
 
 def eliminar_tarea():
 
-    if len(gestor.lista_tareas) > 0:
+    seleccion = lista.curselection() #se obtiene la selección del Listbox con curselection que sirve para para saber qué elemento seleccionó el usuario en la interfaz
+    if seleccion == ():
 
-        gestor.eliminar_tarea(0)
+        messagebox.showerror("Error", "Selecciona una tarea")
 
-        actualizar_lista()
-
-        messagebox.showinfo("Eliminada","Se eliminó la tarea")
+        return
+    ubicacion = seleccion[0]# Obtiene la posición seleccionada gracias al curselection
+    gestor.eliminar_tarea(ubicacion) #Obtiene el texto de esa posición y la elimina
+    actualizar_lista()
+    messagebox.showinfo("Eliminada", "Se eliminó la tarea")
 
 
 def completar_tarea():
-    
-    if len(gestor.lista_tareas) > 0:
 
-        gestor.lista_tareas[0].completar()
+    seleccion = lista.curselection() #tuve que investigar sobre curseselection--->es una funcion que Dice qué elemento seleccionó el usuario y su ubicacion
+    if seleccion == ():
 
-        gestor.guardar_tareas()
+        messagebox.showerror("Error", "Selecciona una tarea")
 
-        actualizar_lista()
+        return
+    ubicacion = seleccion[0]  # Obtiene la posición seleccionada gracias al curselection
+    gestor.lista_tareas[ubicacion].completar() # Completa la tarea
+    gestor.guardar_tareas()
 
-        messagebox.showinfo( "Completada", "La primera tarea fue completada")
+    actualizar_lista()
 
+    messagebox.showinfo("Completada", "La tarea fue completada")
 
 # VENTANA
 
 ventana = tk.Tk()
 
 ventana.title("Gestor de tareas")
+ventana.config(bg="#424242", bd=20, relief="solid")
 
 ventana.geometry("500x400")
 
 
-tk.Label( ventana,text="Tarea", font=("Arial", 12)).pack(pady=2)
+tk.Label( ventana,text="Tarea", font=("Arial", 12),bg="#424242",fg="#FFFFFF").pack(pady=2)
 
 entry_tarea = tk.Entry( ventana, width=40)
 
 entry_tarea.pack(pady=2)
 
  
-tk.Label( ventana, text="Descripcion",font=("Arial", 12)).pack(pady=2)
+tk.Label( ventana, text="Descripcion",font=("Arial", 12),bg="#424242",fg="#FFFFFF").pack(pady=2)
 
 descripcion_tarea = tk.Entry(ventana,width=40)
 
@@ -253,20 +257,20 @@ descripcion_tarea.pack(pady=2)
 
 check_urgente = tk.IntVar()
 
-tk.Checkbutton(ventana,text="Urgente",variable=check_urgente).pack(pady=5)
+tk.Checkbutton(ventana,text="Urgente",variable=check_urgente,bg="#9B9999").pack(pady=5)
 
 
-boton_agregar = tk.Button(ventana,text="Agregar tarea", command=agregar_tarea)
+boton_agregar = tk.Button(ventana,text="Agregar tarea", command=agregar_tarea,bg="#38647E")
 
 boton_agregar.pack(pady=5)
 
 
-boton_completar = tk.Button( ventana,text="Completar", command=completar_tarea)
+boton_completar = tk.Button( ventana,text="Completar", command=completar_tarea,bg="#487E38")
 
 boton_completar.pack(pady=5)
 
 
-boton_eliminar = tk.Button( ventana, text="Eliminar",command=eliminar_tarea)
+boton_eliminar = tk.Button( ventana, text="Eliminar",command=eliminar_tarea,bg="#7E3838")
 
 boton_eliminar.pack(pady=5)
 
